@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#18213b">
+<title>Swastik Ke Chutkule</title>
+
+<style>
+:root {
+  --ink:#18213b;
+  --muted:#68738b;
+  --accent:#6657e8;
+  --line:#e7eaf2;
+}
+
+* { box-sizing:border-box; }
+
+body {
+  margin:0;
+  background:#f4f6fb;
+  color:var(--ink);
+  font-family:system-ui,Arial,sans-serif;
+}
+
+header {
+  position:relative;
+  background:linear-gradient(135deg,#18213b,#5145a4);
+  color:white;
+  text-align:center;
+  padding:34px 16px;
+}
+
+.lock {
+  position:absolute;
+  top:12px;
+  right:14px;
+  padding:7px;
+  background:#ffffff20;
+  color:white;
+  border:1px solid #ffffff50;
+  border-radius:50%;
+  font-size:17px;
+}
+
+.badge {
+  display:inline-block;
+  border:1px solid #ffffff55;
+  border-radius:30px;
+  padding:6px 12px;
+  font-size:12px;
+}
+
+h1 {
+  font-size:clamp(28px,7vw,42px);
+  margin:14px 0 6px;
+}
+
+header p {
+  margin:0;
+  color:#e4e5ff;
+}
+
+main {
+  width:min(760px,calc(100% - 28px));
+  margin:24px auto 55px;
+}
+
+.panel,.card {
+  background:white;
+  border:1px solid var(--line);
+  border-radius:17px;
+  box-shadow:0 7px 24px #1c2b4a0b;
+}
+
+.panel {
+  padding:18px;
+  margin-bottom:22px;
+}
+
+.row {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+}
+
+h2 {
+  font-size:21px;
+  margin:0 0 14px;
+}
+
+.row h2 { margin:0; }
+
+.count,.date,.hint,.status {
+  color:var(--muted);
+  font-size:13px;
+}
+
+label {
+  display:block;
+  font-weight:650;
+  font-size:13px;
+  margin:12px 0 6px;
+}
+
+input,textarea {
+  width:100%;
+  border:1px solid #d9deea;
+  border-radius:10px;
+  padding:12px;
+  font:inherit;
+  color:var(--ink);
+}
+
+textarea {
+  min-height:115px;
+  resize:vertical;
+}
+
+button {
+  border:0;
+  border-radius:10px;
+  padding:11px 15px;
+  font:inherit;
+  font-weight:650;
+  cursor:pointer;
+}
+
+button:disabled { opacity:.55; }
+
+.primary {
+  background:var(--accent);
+  color:white;
+}
+
+.secondary {
+  background:#edf0fa;
+  color:var(--ink);
+}
+
+.danger {
+  background:#fff0f1;
+  color:#bd3045;
+}
+
+.actions {
+  display:flex;
+  gap:8px;
+  flex-wrap:wrap;
+  margin-top:13px;
+}
+
+.announcement {
+  padding:19px;
+  margin:13px 0;
+}
+
+.announcement h3 {
+  font-size:19px;
+  margin:0 0 8px;
+  overflow-wrap:anywhere;
+}
+
+.body {
+  white-space:pre-wrap;
+  line-height:1.6;
+  overflow-wrap:anywhere;
+}
+
+.date { margin-top:13px; }
+
+.empty,.loading {
+  text-align:center;
+  padding:32px 16px;
+  color:var(--muted);
+}
+
+.hidden { display:none!important; }
+
+.status {
+  margin-top:10px;
+  min-height:18px;
+}
+
+footer {
+  text-align:center;
+  color:var(--muted);
+  font-size:12px;
+  padding:0 16px 25px;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <button class="lock" id="lockBtn" aria-label="Admin login">🔒</button>
+
+  <span class="badge">ANNOUNCEMENTS</span>
+  <h1>📢 Swastik Ke Chutkule</h1>
+  <p>All the latest announcements in one place.</p>
+</header>
+
+<main>
+
+<section class="panel hidden" id="adminPanel">
+
+  <div class="row">
+    <h2>Admin access</h2>
+    <button id="closeAdmin" class="secondary">Close</button>
+  </div>
+
+  <div id="loginArea">
+    <label for="password">Admin password</label>
+    <input
+      id="password"
+      type="password"
+      autocomplete="current-password"
+      placeholder="Enter your admin password"
+    >
+
+    <div class="actions">
+      <button id="loginBtn" class="primary">Log in</button>
+    </div>
+  </div>
+
+  <div id="editorArea" class="hidden">
+
+    <div class="row">
+      <strong>Logged in as admin</strong>
+      <button id="logoutBtn" class="secondary">Log out</button>
+    </div>
+
+    <form id="announcementForm">
+
+      <label for="title">Announcement title</label>
+      <input
+        id="title"
+        maxlength="100"
+        required
+        placeholder="Write a short title"
+      >
+
+      <label for="message">Announcement</label>
+      <textarea
+        id="message"
+        maxlength="5000"
+        required
+        placeholder="Write your announcement here..."
+      ></textarea>
+
+      <div class="actions">
+        <button id="publishBtn" class="primary" type="submit">
+          Publish announcement
+        </button>
+
+        <button
+          id="cancelEdit"
+          class="secondary hidden"
+          type="button"
+        >
+          Cancel edit
+        </button>
+      </div>
+
+    </form>
+  </div>
+
+  <div id="adminStatus" class="status" aria-live="polite"></div>
+</section>
+
+<div class="row">
+  <h2>Latest announcements</h2>
+  <span id="announcementCount" class="count">Loading…</span>
+</div>
+
+<section id="announcements">
+  <div class="card loading">Connecting…</div>
+</section>
+
+</main>
+
+<footer>Swastik Ke Chutkule · Stay updated ✨</footer>
+
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-database-compat.js"></script>
+
+<script>
+const firebaseConfig = {
+  apiKey: "AIzaSyDCmwaJZ_5Ya9fXHyeEF8oNrZ6ojX3rFrc",
+  authDomain: "online-chess-e5fd1.firebaseapp.com",
+  databaseURL: "https://online-chess-e5fd1-default-rtdb.firebaseio.com",
+  projectId: "online-chess-e5fd1",
+  storageBucket: "online-chess-e5fd1.firebasestorage.app",
+  messagingSenderId: "825239611016",
+  appId: "1:825239611016:web:814ae486807269f5b9213d"
+};
+
+const ADMIN_EMAIL = "kiran5656562@gmail.com";
+const ADMIN_UID = "hlISTHrzlWUn1QiYnnZ9Q98ylqz2";
+
+const $ = id => document.getElementById(id);
+
+let auth;
+let db;
+let currentUser = null;
+let editingId = null;
+
+function status(message) {
+  $("adminStatus").textContent = message;
+}
+
+function dateText(time) {
+  return new Date(time || Date.now()).toLocaleString([], {
+    dateStyle:"medium",
+    timeStyle:"short"
+  });
+}
+
+function resetForm() {
+  editingId = null;
+  $("announcementForm").reset();
+  $("publishBtn").textContent = "Publish announcement";
+  $("cancelEdit").classList.add("hidden");
+}
+
+function render(snapshot) {
+
+  const items = [];
+
+  snapshot.forEach(child => {
+    items.push({
+      id:child.key,
+      ...child.val()
+    });
+  });
+
+  items.sort((a,b) =>
+    (b.updatedAt || b.createdAt || 0) -
+    (a.updatedAt || a.createdAt || 0)
+  );
+
+  $("announcementCount").textContent =
+    items.length + " " +
+    (items.length === 1 ? "announcement" : "announcements");
+
+  const box = $("announcements");
+  box.replaceChildren();
+
+  if (!items.length) {
+    const empty = document.createElement("div");
+    empty.className = "card empty";
+    empty.textContent = "No announcements yet. Check back soon!";
+    box.append(empty);
+    return;
+  }
+
+  items.forEach(item => {
+
+    const card = document.createElement("article");
+    card.className = "card announcement";
+
+    const heading = document.createElement("h3");
+    heading.textContent = item.title || "Announcement";
+
+    const message = document.createElement("div");
+    message.className = "body";
+    message.textContent = item.message || "";
+
+    const date = document.createElement("div");
+    date.className = "date";
+    date.textContent =
+      (item.updatedAt ? "Updated · " : "Posted · ") +
+      dateText(item.updatedAt || item.createdAt);
+
+    card.append(heading,message,date);
+
+    if (currentUser && currentUser.uid === ADMIN_UID) {
+
+      const actions = document.createElement("div");
+      actions.className = "actions";
+
+      const edit = document.createElement("button");
+      edit.className = "secondary";
+      edit.textContent = "Edit";
+
+      edit.onclick = () => {
+        editingId = item.id;
+
+        $("title").value = item.title || "";
+        $("message").value = item.message || "";
+
+        $("publishBtn").textContent = "Save changes";
+        $("cancelEdit").classList.remove("hidden");
+
+        window.scrollTo({
+          top:0,
+          behavior:"smooth"
+        });
+      };
+
+      const del = document.createElement("button");
+      del.className = "danger";
+      del.textContent = "Delete";
+
+      del.onclick = async () => {
+        if (confirm("Delete this announcement?")) {
+          try {
+            await db.ref("announcements/" + item.id).remove();
+            status("Announcement deleted.");
+          } catch(error) {
+            status("Delete failed: " + error.message);
+          }
+        }
+      };
+
+      actions.append(edit,del);
+      card.append(actions);
+    }
+
+    box.append(card);
+  });
+}
+
+try {
+
+  firebase.initializeApp(firebaseConfig);
+
+  auth = firebase.auth();
+  db = firebase.database();
+
+  db.ref("announcements").on(
+    "value",
+    render,
+    error => {
+      $("announcements").textContent =
+        "Could not load announcements: " + error.message;
+    }
+  );
+
+  auth.onAuthStateChanged(user => {
+
+    currentUser = user;
+
+    const admin = !!user && user.uid === ADMIN_UID;
+
+    $("loginArea").classList.toggle("hidden",admin);
+    $("editorArea").classList.toggle("hidden",!admin);
+
+    if (user && !admin) {
+      auth.signOut();
+      status("This account does not have admin access.");
+    } else {
+      status(
+        admin
+          ? "Admin access enabled."
+          : "Visitors can view announcements without logging in."
+      );
+    }
+
+  });
+
+} catch(error) {
+
+  $("announcements").textContent =
+    "Firebase setup error: " + error.message;
+}
+
+$("lockBtn").onclick = () => {
+  $("adminPanel").classList.toggle("hidden");
+};
+
+$("closeAdmin").onclick = () => {
+  $("adminPanel").classList.add("hidden");
+};
+
+$("loginBtn").onclick = async () => {
+
+  const password = $("password").value;
+
+  if (!password) {
+    status("Enter your admin password.");
+    return;
+  }
+
+  $("loginBtn").disabled = true;
+
+  try {
+
+    await auth.signInWithEmailAndPassword(
+      ADMIN_EMAIL,
+      password
+    );
+
+    $("password").value = "";
+    status("Login successful.");
+
+  } catch(error) {
+
+    status("Login failed: " + error.message);
+
+  } finally {
+
+    $("loginBtn").disabled = false;
+
+  }
+};
+
+$("logoutBtn").onclick = async () => {
+
+  await auth.signOut();
+  resetForm();
+  status("Logged out.");
+
+};
+
+$("announcementForm").onsubmit = async event => {
+
+  event.preventDefault();
+
+  if (!currentUser || currentUser.uid !== ADMIN_UID) {
+    status("Admin login required.");
+    return;
+  }
+
+  const title = $("title").value.trim();
+  const message = $("message").value.trim();
+
+  if (!title || !message) {
+    status("Fill in both fields.");
+    return;
+  }
+
+  $("publishBtn").disabled = true;
+
+  try {
+
+    const now = Date.now();
+
+    if (editingId) {
+
+      await db.ref("announcements/" + editingId).update({
+        title,
+        message,
+        updatedAt:now
+      });
+
+      status("Announcement updated.");
+
+    } else {
+
+      await db.ref("announcements").push({
+        title,
+        message,
+        createdAt:now
+      });
+
+      status("Announcement published!");
+
+    }
+
+    resetForm();
+
+  } catch(error) {
+
+    status("Could not save: " + error.message);
+
+  } finally {
+
+    $("publishBtn").disabled = false;
+
+  }
+};
+
+$("cancelEdit").onclick = resetForm;
+
+</script>
+</body>
+</html>
